@@ -1,12 +1,12 @@
 ---
-name: clarify
-description: "/clarify — Domain Analysis and Specification"
+name: define
+description: "/define — Domain Analysis and Specification"
 ---
 
-# Clarify Protocol
+# Define Protocol
 
 ## Trigger
-`/clarify [idea]`
+`/define [idea]`
 
 ---
 
@@ -29,10 +29,21 @@ explicitly signals they are done (e.g. "done", "ready to draft", "proceed").
    new information surfaces. Offer expert commentary — suggest patterns, flag risks,
    note when a design decision has hard verification consequences.
 
-4. **The developer has the final decision** on every design choice. Your role is to
+4. **Establish the target language early.** Ask which language the production code
+   should be written in. Then:
+   - If any components are likely to be Prove-tier, check that the chosen language
+     is one the Dafny compiler can emit. Dafny supports: Python (`py`), Go (`go`),
+     Java (`java`), JavaScript/TypeScript (`js`), C# (`cs`), and Rust (`rs`,
+     experimental). C and C++ are not Dafny compile targets — if the developer
+     wants C/C++ and needs Prove-tier components, flag this conflict and discuss
+     alternatives.
+   - If all components are likely Direct-tier, any language in the supported tier
+     system is valid (see `docs/language-support.md`).
+
+5. **The developer has the final decision** on every design choice. Your role is to
    inform and challenge, not to dictate.
 
-5. **Continue the dialogue** until the developer signals they are finished.
+6. **Continue the dialogue** until the developer signals they are finished.
 
 ---
 
@@ -42,6 +53,8 @@ This phase runs without developer involvement until the draft passes review.
 
 1. **Draft `docs/PRD.md`** using `templates/PRD_TEMPLATE.md`. Draw entirely from
    the brainstorming record. Fill every section. Leave no placeholders.
+   - Set the **Target Language** field in the PRD header from what was agreed
+     in Phase A.
    - If the idea covers a full application, identify all significant components
      and document each one.
    - If the scope is too broad for one PRD, flag this before drafting and ask
@@ -50,6 +63,8 @@ This phase runs without developer involvement until the draft passes review.
 2. **Launch a Reviewer subagent** to evaluate the draft against these criteria:
    - Every decision from the brainstorming is captured — nothing missing, nothing contradicted.
    - All PRD template sections are complete with no placeholders.
+   - The Target Language field is present and is valid given the Verification Scope
+     triage (must be a Dafny compile target if any Prove-tier components exist).
    - The Verification Scope triage in Section 9 is defensible given the invariants
      and failure modes agreed during brainstorming.
    - Edge cases and failure modes in the PRD match what was discussed.
@@ -59,8 +74,8 @@ This phase runs without developer involvement until the draft passes review.
 
 4. **Request developer sign-off:**
    > "PRD drafted to `docs/PRD.md` and internally reviewed. Please check the
-   > requirements and the Verification Scope in Section 9, then reply 'approved'
-   > to proceed to `/prove`."
+   > requirements, the Target Language, and the Verification Scope in Section 9,
+   > then reply 'approved' to proceed to `/prove`."
 
 5. **Do not proceed** until the developer approves.
 

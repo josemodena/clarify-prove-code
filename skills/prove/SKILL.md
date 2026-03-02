@@ -10,7 +10,7 @@ description: "/prove — Formal Verification with Dafny"
 
 ## Prerequisites
 - `docs/PRD.md` must exist and be marked as approved by the human.
-- If either condition is unmet, stop and redirect to `/clarify`.
+- If either condition is unmet, stop and redirect to `/define`.
 
 ## Steps
 
@@ -48,7 +48,7 @@ description: "/prove — Formal Verification with Dafny"
 
 ## Constraints
 - Do not write implementation code during this phase.
-- Do not modify `docs/PRD.md` — if a contradiction is found, report it and return to `/clarify`.
+- Do not modify `docs/PRD.md` — if a contradiction is found, report it and return to `/define`.
 - The Dafny spec is the authoritative source for any component marked Prove. No business logic
   may exist in `src/` for those components that is not first expressed in `logic/`.
 - If no components are marked Prove, skip this phase and proceed directly to `/code`.

@@ -13,7 +13,7 @@ skills available.
 
 ### Option A — Global plugin (recommended)
 
-Installs the skills into Claude Code globally so `/clarify`, `/prove`, and `/code` work in
+Installs the skills into Claude Code globally so `/define`, `/prove`, and `/code` work in
 every session without any per-project setup.
 
 ```bash
@@ -138,10 +138,10 @@ All required tools are present.
 Open Claude Code in your project directory and try:
 
 ```
-/clarify write a function that merges two sorted lists into a sorted list
+/define write a function that merges two sorted lists into a sorted list
 ```
 
-Claude will analyse the domain, ask any needed questions, and produce `docs/PRD.md`
-including a Verification Scope in Section 9.
+Claude will analyse the domain, ask any needed questions (including target language),
+and produce `docs/PRD.md` including a Verification Scope in Section 9.
 
 See [Workflow Deep Dive](workflow.md) for what happens next.

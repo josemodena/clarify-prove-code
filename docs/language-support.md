@@ -1,54 +1,74 @@
 # Language Support
 
-## Tier 1 — Full Support
+Language support in clarify-prove-code works differently depending on the component tier.
 
-Full support means:
+---
+
+## Prove-tier: Dafny Compiler Targets
+
+Prove-tier components are compiled directly from the verified Dafny spec using the Dafny
+compiler (`dafny translate`). No LLM translation is involved — the output is isomorphic
+to the spec by construction.
+
+The target language must be one the Dafny compiler supports:
+
+| Language              | Dafny target code | Notes                     |
+|-----------------------|-------------------|---------------------------|
+| Python                | `py`              | Full support              |
+| Go                    | `go`              | Full support              |
+| Java                  | `java`            | Full support              |
+| JavaScript/TypeScript | `js`              | Full support              |
+| C#                    | `cs`              | Full support (default)    |
+| Rust                  | `rs`              | Experimental              |
+
+**C and C++ are not Dafny compile targets.** If your project uses C/C++ and has Prove-tier
+components, flag this during `/define` and choose an alternative (e.g. generate a
+Dafny-supported language and wrap it, or reclassify the component as Direct-tier with
+extra scrutiny).
+
+The target language is established during `/define` and recorded in `docs/PRD.md`. It
+applies to all components — Prove-tier and Direct-tier alike — so the whole project
+uses a single language.
+
+---
+
+## Direct-tier: LLM Generation Tiers
+
+Direct-tier components are LLM-generated from PRD requirements. The tier system below
+describes the quality of that generation.
+
+### Tier 1 — Full Support
+
 - Idiomatic output in the target language's style
-- Complete mapping of all Dafny constructs to language equivalents
+- Complete mapping of all PRD constructs to language equivalents
 - Tests generated using the language's standard testing framework
-- Inline proof annotations linked to verified Dafny methods
 
-| Language | Notes |
-|----------|-------|
-| **Python** | Required. Explicit support for data science and ML workloads: numpy/pandas-compatible type hints, `__debug__`-guarded assertions, `dataclasses`/`NamedTuple` for algebraic types. |
-| TypeScript | Strict mode; type-level encoding of Dafny type constraints. |
-| JavaScript | JSDoc types; targets Node.js and browser environments. |
-| Rust | `Result<T, E>` for error cases; `debug_assert!` for invariants; `enum` for `datatype`. |
-| Go | `(T, error)` returns; struct methods for grouped operations. |
-| Java | Checked exceptions or `Optional<T>`; `assert` in debug mode. |
-| C | `assert.h` for invariants; manual memory management documented in proof annotations. |
-| C++ | RAII patterns; `static_assert` where applicable; `std::expected` (C++23) for error handling. |
+**Languages:** Python, TypeScript, JavaScript, Rust, Go, Java, C, C++
 
-## Tier 2 — Standard Support
+**Python** has explicit support for data science and ML workloads: numpy/pandas-compatible
+type hints, `dataclasses` for structured types.
 
-Standard support means:
-- Spec-to-code mapping for all Dafny constructs
+### Tier 2 — Standard Support
+
+- Spec-to-code mapping for all PRD constructs
 - Best-effort idiomatic output (some constructs may be non-idiomatic)
 - Tests generated; may require minor manual adjustment
 
-| Language | Notes |
-|----------|-------|
-| C# | Natural fit with Dafny (same .NET ecosystem); near-Tier-1 quality. |
-| Kotlin | Sealed classes for `datatype`; coroutines not in scope. |
-| Swift | `Result<T, Error>` for errors; value types preferred. |
-| Scala | Case classes and `Either[E, T]` for algebraic types. |
-| Ruby | Duck typing; invariants documented rather than enforced at runtime. |
+**Languages:** C#, Kotlin, Swift, Scala, Ruby
 
-## Tier 3 — Basic Support
+### Tier 3 — Basic Support
 
-Basic support means:
-- Direct structural translation of Dafny constructs
+- Direct structural translation
 - Minimal idiomatic adaptation
 - All non-obvious constructs flagged for manual review in the diff
 
-All languages not listed in Tier 1 or Tier 2 fall into Tier 3, **except Zig**.
+Any language not explicitly assigned to Tier 1 or Tier 2 falls into Tier 3,
+**except Zig, which is not supported at any tier**.
 
-## Explicitly Excluded
+---
 
-**Zig** is not supported at any tier.
+## Requesting a Language Promotion
 
-## Requesting a Language
-
-If your language is Tier 3 and the output is poor, open an issue describing
-the specific Dafny constructs that didn't translate well. Tier promotions are
-considered when there is a concrete spec-to-idiom mapping to implement.
+If your language is Tier 3 and the output is poor, open an issue describing the specific
+PRD constructs that didn't translate well. Tier promotions are considered when there is a
+concrete spec-to-idiom mapping to implement.

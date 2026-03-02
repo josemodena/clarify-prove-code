@@ -32,19 +32,21 @@ Under these criteria, explicit, strongly typed languages outperform permissive o
 
 **clarify-prove-code** bridges the Ambiguity Gap with a mandatory three-phase pipeline.
 
-### Phase 1: Clarify
+### Phase 1: Define
 
 **Input:** a human idea, stated in English.
-**Output:** `docs/PRD.md` — a structured specification approved by the human, including a Verification Scope.
+**Output:** `docs/PRD.md` — a structured specification approved by the human, including a Target Language and a Verification Scope.
 
-The agent does not write code. It interrogates. It asks about invariants, edge cases, failure modes, and security boundaries until the human's intent is fully unambiguous. The result is a document the human has read and approved — not an assumption the agent made.
+The agent does not write code. It interrogates. It asks about invariants, edge cases, failure modes, security boundaries, and the target language until the human's intent is fully unambiguous. The result is a document the human has read and approved — not an assumption the agent made.
 
 At the end of this phase, the agent proposes a **Verification Scope** (Section 9 of the PRD): a triage table assigning each component a tier.
 
 - **Prove** — must go through formal Dafny verification before any code is written. Applied to: payment logic, access control, data integrity, state machines with complex transitions, security boundaries, safety-critical behaviour.
 - **Direct** — goes straight from PRD to code generation. Applied to: UI, API glue, configuration, logging, scripts, prototypes.
 
-The human reviews and approves both the requirements and the triage in a single sign-off.
+The PRD also records the **Target Language**: the language all production code will be written in. If any components are Prove-tier, the language must be one the Dafny compiler can emit (Python, Go, Java, JavaScript/TypeScript, C#, Rust). This is established during the Define dialogue, not at the end of the pipeline.
+
+The human reviews and approves the requirements, the Target Language, and the triage in a single sign-off.
 
 **Why this phase exists:** Errors found here cost 60 seconds. Errors found in production cost far more. The Verification Scope ensures formal verification is targeted precisely where it adds value, so the pipeline can cover the entire application without unnecessary overhead.
 
@@ -65,15 +67,15 @@ If no components are marked Prove, this phase is skipped.
 
 ### Phase 3: Code
 
-**Input:** `docs/PRD.md` (Verification Scope) + `logic/*.dfy` (for Prove-tier components)
+**Input:** `docs/PRD.md` (Verification Scope + Target Language) + `logic/*.dfy` (for Prove-tier components)
 **Output:** `src/` — production code in the target language, with a traceability summary.
 
 The agent generates code using two paths:
 
-- **Prove-tier components:** Transpile isomorphically from the verified Dafny spec. No new business logic may be introduced. Every function maps to a verified Dafny method.
-- **Direct-tier components:** Generate from PRD requirements directly. Every function maps to a PRD operation. Every failure mode maps to an explicit return type.
+- **Prove-tier components:** The Dafny compiler (`dafny translate`) converts the verified spec directly into the target language. No LLM translation — the compiler output is isomorphic to the spec by construction. No new business logic can be introduced.
+- **Direct-tier components:** The LLM generates code from PRD requirements. Every function maps to a PRD operation. Every failure mode maps to an explicit return type.
 
-The agent produces a mandatory `docs/TRACE.md` mapping each `src/` function to its source: either a `logic/*.dfy` method or a PRD section directly.
+The agent produces a mandatory `docs/TRACE.md` mapping each `src/` function to its source: either `dafny:logic/*.dfy` (compiler output) or a PRD section directly (LLM output).
 
 **Auto-merge is off.** The human reviews and approves the diff before anything is committed.
 
@@ -85,21 +87,21 @@ Every artifact traces back to the one before it:
 
 ```
 English idea
-    ↓ /clarify (human-approved, including Verification Scope)
+    ↓ /define (human-approved, including Target Language + Verification Scope)
 docs/PRD.md
     ↓ /prove (machine-verified — Prove-tier components only)
 logic/*.dfy
-    ↓ /code (two paths: isomorphic from Dafny, or direct from PRD)
+    ↓ /code (two paths: Dafny compiler for Prove-tier, LLM for Direct-tier)
 src/
     ↓
-docs/TRACE.md (proof source + PRD requirement per function)
+docs/TRACE.md (source + PRD requirement per function)
 ```
 
 If a bug is found, the chain tells you exactly where it entered:
 
-- Does `src/` match its source (Dafny spec or PRD)? → Code translation error
+- Does `src/` match its source (Dafny compiler output or PRD)? → Code generation error
 - Does `logic/*.dfy` satisfy all invariants? → The verifier would have caught this
-- Does `docs/PRD.md` correctly capture the intent? → Requirements gap — return to `/clarify`
+- Does `docs/PRD.md` correctly capture the intent? → Requirements gap — return to `/define`
 
 ---
 
@@ -107,16 +109,16 @@ If a bug is found, the chain tells you exactly where it entered:
 
 The methodology is designed for multi-agent review. Once `/code` is complete:
 
-- A **Reviewer Agent** reads `docs/TRACE.md` and verifies that every PRD requirement maps to either a verified Dafny invariant or a PRD-direct function.
-- A **Differential Testing Agent** can run the Dafny model and the compiled binary against identical inputs and verify equivalence for Prove-tier components.
+- A **Reviewer Agent** reads `docs/TRACE.md` and verifies that every PRD requirement maps to either a Dafny-compiled function or a PRD-direct function.
+- A **Differential Testing Agent** can run the Dafny model and the compiled binary against identical inputs and verify equivalence for Prove-tier components. Because the code was produced by the Dafny compiler rather than LLM translation, this equivalence holds by construction — the testing agent is a final sanity check, not a primary correctness mechanism.
 - Neither agent needs to understand the English intent — they only verify mechanical correspondence between layers.
 
 ---
 
 ## What This Is Not
 
-- It is not a silver bullet. The PRD is only as good as the human's answers during `/clarify`. Garbage in, garbage out — the formal proofs will be mathematically correct but semantically wrong.
-- It is not fully automated. Human sign-off after `/clarify` is mandatory. The human is the architect; the agent is the engineer.
+- It is not a silver bullet. The PRD is only as good as the human's answers during `/define`. Garbage in, garbage out — the formal proofs will be mathematically correct but semantically wrong.
+- It is not fully automated. Human sign-off after `/define` is mandatory. The human is the architect; the agent is the engineer.
 
 ---
 
@@ -124,7 +126,7 @@ The methodology is designed for multi-agent review. Once `/code` is complete:
 
 | Tool | Purpose | License |
 |---|---|---|
-| [Dafny](https://github.com/dafny-lang/dafny) | Formal specification and verification | MIT |
+| [Dafny](https://github.com/dafny-lang/dafny) | Formal specification, verification, and Prove-tier code generation | MIT |
 | [Claude Code](https://claude.ai/code) | Agent executing the pipeline | Commercial |
 
 Install Dafny: `bash scripts/install-dafny.sh`
