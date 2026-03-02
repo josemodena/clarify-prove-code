@@ -44,12 +44,48 @@ For the full language mapping and rationale, see [docs/language-support.md](docs
 
 ## Quick Start
 
-### 1. Install the plugin and its dependencies
+### Option A — Plugin installation (global, recommended)
+
+Install once; `/clarify`, `/prove`, and `/code` become available in every Claude Code session.
 
 ```sh
-git clone https://github.com/josemodena/clarify-prove-code
+# 1. Register the GitHub repo as a plugin source
+claude plugin marketplace add https://github.com/josemodena/clarify-prove-code
+
+# 2. Install the plugin
+claude plugin install clarify-prove-code
+
+# 3. Install Dafny
+bash scripts/install-dafny.sh
+
+# 4. Start any session — the skills are available immediately
+claude
+```
+
+To remove the plugin later:
+
+```sh
+claude plugin uninstall clarify-prove-code
+```
+
+### Option B — Session-only (no permanent install)
+
+Load the plugin for a single Claude Code session without installing it globally:
+
+```sh
+git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
+bash ~/clarify-prove-code/scripts/install-dafny.sh
+claude --plugin-dir ~/clarify-prove-code
+```
+
+### Option C — Project-level installation (via install script)
+
+Copies commands and `CLAUDE.md` into a specific project directory so the skills work in that project only:
+
+```sh
+git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
 cd my-project
-bash /path/to/clarify-prove-code/scripts/install.sh
+bash ~/clarify-prove-code/scripts/install.sh
 ```
 
 The installer:
@@ -57,7 +93,7 @@ The installer:
 - Installs Dafny (and .NET if needed) automatically
 - Verifies all tools are present
 
-#### Install options
+#### Install script options
 
 ```sh
 # Skip Dafny if already installed
@@ -67,7 +103,7 @@ bash scripts/install.sh --skip-dafny
 bash scripts/install.sh --target=/path/to/project
 ```
 
-### 2. Install Dafny manually (if preferred)
+### Install Dafny manually (if preferred)
 
 ```sh
 # Linux / macOS — auto-detects best method (Homebrew, .NET tool, or binary)
@@ -78,13 +114,13 @@ INSTALL_METHOD=dotnet bash scripts/install-dafny.sh
 INSTALL_METHOD=binary DAFNY_VERSION=4.4.0 bash scripts/install-dafny.sh
 ```
 
-### 3. Verify the environment
+### Verify the environment
 
 ```sh
 bash scripts/verify-deps.sh
 ```
 
-### 4. Start a session
+### Start a session
 
 ```sh
 # In your application project folder:
@@ -102,15 +138,23 @@ The agent will interrogate your idea, write a PRD, wait for your approval, write
 
 ```
 clarify-prove-code/
+├── package.json                 ← Plugin manifest (name, version)
 ├── CLAUDE.md                    ← Master rules for Claude Code
+├── skills/                      ← Plugin skills (global installation)
+│   ├── clarify/
+│   │   └── SKILL.md             ← /clarify skill definition
+│   ├── prove/
+│   │   └── SKILL.md             ← /prove skill definition
+│   └── code/
+│       └── SKILL.md             ← /code skill definition
 ├── .claude/
 │   ├── settings.json            ← Plugin config (language tiers, auto-merge flag)
 │   └── commands/
-│       ├── clarify.md           ← /clarify skill
-│       ├── prove.md             ← /prove skill
-│       └── code.md              ← /code skill
+│       ├── clarify.md           ← /clarify (project-level installation)
+│       ├── prove.md             ← /prove (project-level installation)
+│       └── code.md              ← /code (project-level installation)
 ├── scripts/
-│   ├── install.sh               ← One-step plugin + dependency installer
+│   ├── install.sh               ← Project-level installer (copies commands + CLAUDE.md)
 │   ├── install-dafny.sh         ← Dafny installer (Linux / macOS)
 │   └── verify-deps.sh           ← Dependency checker
 ├── docs/
