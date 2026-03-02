@@ -1,6 +1,6 @@
 ---
 name: code
-description: "Phase 3. Transpiles verified Dafny logic into production Rust or Zig. Run after /prove passes."
+description: "Phase 3. Transpiles verified Dafny components and generates PRD-backed code for direct components. Run after /prove passes (or immediately after /clarify if no Prove-tier components exist)."
 ---
 
 # Code Protocol
@@ -9,37 +9,91 @@ description: "Phase 3. Transpiles verified Dafny logic into production Rust or Z
 `/code`
 
 ## Prerequisites
-- `logic/*.dfy` must exist and have passed `dafny verify` with zero errors.
-- If this is unmet, stop and redirect to `/prove`.
+- `docs/PRD.md` must exist and be approved.
+- For every component marked **Prove** in Section 9: `logic/<component>.dfy` must exist
+  and have passed `dafny verify` with zero errors. If any Prove component lacks a verified
+  spec, stop and redirect to `/prove`.
+- Components marked **Direct** have no Dafny prerequisite.
 
 ## Steps
 
-1. **Verify precondition.** Confirm the `.dfy` file is present and verification has passed. If not, stop.
+1. **Read `docs/PRD.md` Section 9** (Verification Scope). Build a list of all components
+   and their tier: Prove or Direct.
 
-2. **Read the full Dafny spec** before writing a single line of code. Build a mental (or written) map of:
-   - Each `method` → its target function in `src/`
-   - Each `ensures` clause → its corresponding runtime check or type constraint
-   - Each `requires` clause → its corresponding input validation
+2. **Confirm target language** — ask the human which language to use if not already specified.
+   Refer to the supported tiers in `CLAUDE.md`. Zig is not supported.
 
-3. **Write production code** to `src/`:
-   - **Zig:** Every allocation must use an explicit `std.mem.Allocator` passed as a parameter. No `@import("std").heap` globals.
-   - **Rust:** Apply `#![forbid(unsafe_code)]` at the crate root unless `unsafe` is required and that requirement is proven in the spec.
-   - No business logic not present in the Dafny spec may be introduced. If you find logic missing from the spec, stop and return to `/prove`.
+3. **For each Prove component:**
+   - Read `logic/<component>.dfy` in full.
+   - Write production code to `src/<component>.*`.
+   - Map every Dafny `method` to a function; every `requires` clause to an input guard;
+     every `ensures` clause to a comment and, where possible, a debug-mode assertion.
+   - No business logic not present in the Dafny spec may be introduced.
+     If missing logic is found, stop and return to `/prove`.
+   - Annotate each function with a reference to its Dafny source:
+     `# Implements: logic/<component>.dfy::<MethodName>`
 
-4. **Write traceability summary** as `docs/TRACE.md`:
+4. **For each Direct component:**
+   - Read the relevant PRD sections (operations, invariants, edge cases).
+   - Write production code to `src/<component>.*`.
+   - Map every PRD operation to a function; every failure mode to an explicit return type.
+   - No business logic not described in the PRD may be introduced.
+   - Annotate each function with a reference to its PRD section:
+     `# Implements: docs/PRD.md §<section>`
 
-   | `src/` function | `logic/*.dfy` method | PRD requirement |
+5. **Write `docs/TRACE.md`:**
+
+   | `src/` function | Proof source | PRD requirement |
    |---|---|---|
-   | `transfer()` | `Transfer` method | PRD §3.1 — funds conservation |
+   | `payment.transfer()` | `logic/payment.dfy::Transfer` | PRD §4.1 |
+   | `dashboard.render()` | PRD direct | PRD §4.3 |
+   | `auth.checkPermission()` | `logic/auth.dfy::CheckPerm` | PRD §4.2 |
 
-5. **Build check:**
-   - Zig: `zig build`
-   - Rust: `cargo build`
-   - Fix compile errors. Do not push code that does not compile.
+   Every function in `src/` must appear in this table. No exceptions.
 
-6. **Notify the human.** Present the traceability summary and confirm every PRD requirement is covered.
+6. **Auto-merge is OFF.** Do not commit, merge, or apply changes automatically.
+   Present the full diff and wait for explicit human approval before making any changes.
+
+7. **Summarise.** List what was generated, distinguish Prove-backed from Direct-backed
+   functions, and flag any manual review items.
+
+## Language-Specific Notes
+
+### Python (Tier 1)
+- Use type hints throughout.
+- Express invariants as `assert` statements guarded by `__debug__`.
+- Use `dataclasses` or `NamedTuple` for Dafny datatypes.
+- Compatible with numpy/pandas for data science workloads.
+
+### Rust (Tier 1)
+- Use `Result<T, E>` for operations with error cases.
+- Map invariants to `debug_assert!` macros.
+- Use enums for Dafny `datatype`.
+- Apply `#![forbid(unsafe_code)]` unless unsafe is required and that requirement is
+  proved in the spec.
+
+### TypeScript/JavaScript (Tier 1)
+- Use TypeScript types to encode Dafny type constraints.
+- Map `requires` to runtime guards with typed errors.
+
+### Go (Tier 1)
+- Return `(T, error)` pairs for operations with error cases.
+- Use struct methods to group related operations.
+
+### Java, C, C++ (Tier 1)
+- Standard idiomatic patterns apply.
+- Use assertions for debug-mode invariant checking.
+
+### Tier 2 languages
+- Follow the same mapping table; raise any idiomatic gaps as review items.
+
+### Tier 3 languages
+- Direct structural translation; minimal idiomatic adaptation.
+- Flag all non-obvious constructs for manual review.
 
 ## Constraints
-- No new business logic in this phase. Code and spec must be isomorphic.
+- No new business logic in this phase. Code must be isomorphic to the spec (for Prove
+  components) or traceable to a PRD operation (for Direct components).
 - The traceability summary is mandatory, not optional.
-- If a requirement from the PRD cannot be expressed in the compiled code, escalate to the human before proceeding.
+- If a PRD requirement cannot be expressed in the compiled code, escalate to the human
+  before proceeding.

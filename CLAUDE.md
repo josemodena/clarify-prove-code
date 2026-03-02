@@ -15,13 +15,18 @@ You do not write production code from assumptions. You follow a strict, sequenti
 ### Phase 1: /clarify
 
 Perform a thorough domain analysis and convert the human's idea into a strict, approved specification.
+The scope may be a single component or the entire application.
 
 **You must:**
 - Analyse the problem domain: identify entities, relationships, state space, invariants, and failure modes.
 - Ask 3–5 specific technical questions targeting: state invariants, edge cases, failure modes, and security boundaries.
 - Wait for the human's answers before proceeding.
 - Write the output to `docs/PRD.md` using `templates/PRD_TEMPLATE.md`.
-- Request explicit human sign-off before moving to `/prove`.
+- Propose a **Verification Scope** (Section 9 of the PRD): a triage table assigning each component a tier:
+  - **Prove** — must go through Dafny verification. Apply to: financial logic, access control,
+    data integrity, state machines with complex transitions, security boundaries, safety-critical behaviour.
+  - **Direct** — goes straight from PRD to code. Apply to: UI, API glue, config, logging, scripts, prototypes.
+- Request explicit human sign-off on both the requirements and the triage before moving to `/prove`.
 
 **You must not:**
 - Write any code during this phase.
@@ -31,19 +36,21 @@ Perform a thorough domain analysis and convert the human's idea into a strict, a
 
 ### Phase 2: /prove
 
-Translate the approved `docs/PRD.md` into mathematically verifiable logic.
+Translate the Prove-tier components from the approved `docs/PRD.md` into mathematically verifiable logic.
 
 **You must:**
-- Read `docs/PRD.md` in full before writing any logic.
+- Read `docs/PRD.md` in full before writing any logic. Find Section 9 (Verification Scope).
+- Process only the components marked **Prove**. Components marked **Direct** skip this phase entirely.
 - Write Dafny (`.dfy`) specifications to the `logic/` directory using `templates/SPEC_TEMPLATE.md` as a guide.
 - Run the verifier: `dafny verify logic/*.dfy`
 - If verification fails: analyze the counter-example, explain the failure in plain English, fix the `.dfy` file, and re-run. Repeat until all proofs pass.
 - Produce `docs/PROOF.md` summarising what was proved and any unverified assumptions.
 - Inform the human when logic is verified and ready for `/code`.
+- If no components are marked Prove, skip this phase and proceed directly to `/code`.
 
 **You must not:**
 - Write any implementation code during this phase.
-- Proceed to `/code` if any Dafny verification errors remain.
+- Proceed to `/code` if any Prove-tier component has Dafny verification errors remaining.
 
 If Dafny is not installed, direct the user to run `scripts/install-dafny.sh`.
 
@@ -51,18 +58,22 @@ If Dafny is not installed, direct the user to run `scripts/install-dafny.sh`.
 
 ### Phase 3: /code
 
-Transpile proven Dafny logic into production code in the target language.
+Generate production code for all components using two paths depending on their tier.
 
 **You must:**
-- Verify that `logic/*.dfy` exists and has passed verification before writing any code.
+- Read Section 9 of `docs/PRD.md` to determine each component's tier.
+- For **Prove-tier** components: verify that `logic/<component>.dfy` exists and has passed
+  verification, then transpile isomorphically from the Dafny spec. No new business logic.
+- For **Direct-tier** components: generate from PRD requirements directly. Map every operation
+  to a function; every failure mode to an explicit return type. No new business logic.
 - Confirm the target language with the human. See **Language Support** below.
 - Write output to `src/`.
-- Map every generated function back to an invariant in the Dafny spec — no new business logic may be introduced at this phase.
-- Provide a traceability summary (`docs/TRACE.md`): a table mapping each `src/` function to its `logic/*.dfy` invariant and its `docs/PRD.md` requirement.
+- Provide a traceability summary (`docs/TRACE.md`): a table mapping each `src/` function
+  to its proof source (`logic/*.dfy` method or "PRD direct") and its `docs/PRD.md` requirement.
 - **Do not auto-merge.** Present the full diff and wait for explicit human approval before committing or merging any changes.
 
 **You must not:**
-- Add business logic not present in the verified spec.
+- Add business logic not present in the verified spec (for Prove-tier) or the PRD (for Direct-tier).
 - Skip the traceability summary.
 - Commit or merge without explicit human approval.
 
@@ -95,7 +106,10 @@ All other languages not in Tier 1 or Tier 2, **except Zig**.
 
 ## Hard Rules (All Phases)
 
-1. **No skipping.** If the human asks for implementation code without a verified spec, refuse and redirect to `/clarify`.
+1. **No skipping.** If the human asks for implementation code without an approved `docs/PRD.md`,
+   refuse and redirect to `/clarify`. For Prove-tier components, refuse to write code without a
+   passing Dafny verification. For Direct-tier components, code may be generated directly from
+   the approved PRD.
 2. **No hidden control flow.** What the code does must be readable from the code itself.
 3. **Explicit errors.** Every failure mode must be an explicit return type, not an exception or a panic.
 4. **Traceability.** Every production artifact must trace back to a requirement in `docs/PRD.md`.
@@ -118,6 +132,6 @@ Run `scripts/verify-deps.sh` to check all dependencies are present.
 
 | Command | Phase | Output |
 |---|---|---|
-| `/clarify [idea]` | 1 — Clarify | `docs/PRD.md` |
+| `/clarify [idea]` | 1 — Clarify | `docs/PRD.md` (with Verification Scope) |
 | `/prove` | 2 — Prove | `logic/*.dfy` (verified), `docs/PROOF.md` |
 | `/code` | 3 — Code | `src/` (diff for review), `docs/TRACE.md` |

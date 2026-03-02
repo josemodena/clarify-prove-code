@@ -1,60 +1,48 @@
 # /clarify — Domain Analysis and Specification
 
-Perform a structured domain analysis of the current task and produce a formal specification.
+Perform a structured domain analysis of the current task and produce a full PRD,
+including a Verification Scope triage for every component.
 
 ## Steps
 
-1. **Read context** — examine any files the user has shared, the issue description, or the stated goal.
+1. **Read the idea** from the user's prompt. Do not assume anything not stated.
 
-2. **Domain analysis** — identify:
-   - Key entities and their relationships
-   - State space: what can change, what stays constant
-   - Invariants: properties that must always hold
-   - Preconditions: what must be true before the operation
-   - Postconditions: what must be true after the operation
-   - Edge cases and failure modes
+2. **Interrogate.** Ask exactly 3–5 questions. Each question must target one of:
+   - **State invariants** — what must always be true, no matter what?
+   - **Edge cases** — what happens at the boundaries (empty input, max load, concurrent access)?
+   - **Failure modes** — what must never happen? What is the blast radius if it does?
+   - **Security boundaries** — who can read, write, or execute each operation?
+   - **Performance contracts** — are there latency or memory bounds that are non-negotiable?
 
-3. **Ask clarifying questions** — if any of the following are ambiguous, ask before proceeding:
-   - Behaviour on invalid input
-   - Concurrency or ordering requirements
-   - Performance constraints that affect correctness (e.g. overflow, truncation)
-   - External dependencies whose behaviour is not fully specified
+3. **Wait.** Do not write any document or code until the human has answered.
 
-4. **Produce SPEC.md** — write a structured specification file with the following sections:
+4. **Draft `docs/PRD.md`** using `templates/PRD_TEMPLATE.md`. Fill every section. Do not leave
+   placeholders. If the idea describes a full application, identify all significant components
+   and document each one. If the idea is too broad for one PRD, propose a decomposition and
+   confirm with the human which unit to start with.
 
-```markdown
-# Specification: <title>
+5. **Propose Verification Scope (Section 9 of the PRD).** Analyse every component and assign
+   each a tier:
+   - **Prove** — must go through Dafny verification before code is written. Apply to:
+     financial or payment logic, access control and permissions, data integrity guarantees,
+     state machines with complex transitions, external-facing security boundaries,
+     safety-critical behaviour.
+   - **Direct** — goes straight from PRD to code; no Dafny required. Apply to:
+     UI components, API glue and data transformation, configuration loading, logging
+     and monitoring, scripts, prototypes.
 
-## Problem Statement
-<one paragraph>
+   Fill Section 9 with a table: component, tier, one-line rationale.
 
-## Entities
-<table or list of entities with types and descriptions>
+6. **Request sign-off.** Present the full PRD to the human:
+   > "PRD written to `docs/PRD.md`. Please review the requirements and the Verification
+   > Scope in Section 9, then reply 'approved' to proceed to `/prove`."
 
-## Invariants
-<numbered list of properties that must always hold>
-
-## Operations
-For each operation:
-### <operation name>
-- Preconditions: ...
-- Postconditions: ...
-- Error cases: ...
-
-## Edge Cases
-<numbered list>
-
-## Assumptions
-<numbered list of things assumed true but not verified>
-
-## Open Questions
-<any questions still requiring user input>
-```
-
-5. **Summarise** — tell the user what was produced and remind them to run `/prove` next.
+7. **Do not proceed** until the human approves both the requirements and the triage.
 
 ## Notes
-
-- Do not start coding during this phase.
-- If the user already has a partial spec, refine it rather than replacing it.
-- Flag any requirements that are difficult to express in first-order logic, as these may be hard to prove.
+- No code of any kind during this phase.
+- If the human's answers contradict each other, flag the contradiction before drafting.
+- If the human disagrees with a triage assignment, update Section 9 before requesting
+  sign-off again.
+- If a requirement is difficult to express in first-order logic, flag it — it may affect
+  the triage decision.

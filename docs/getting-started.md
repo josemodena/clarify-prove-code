@@ -90,6 +90,7 @@ Open Claude Code in your project directory and try:
 /clarify write a function that merges two sorted lists into a sorted list
 ```
 
-Claude will analyse the domain, ask any needed questions, and produce `SPEC.md`.
+Claude will analyse the domain, ask any needed questions, and produce `docs/PRD.md`
+including a Verification Scope in Section 9.
 
 See [Workflow Deep Dive](workflow.md) for what happens next.

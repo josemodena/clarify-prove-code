@@ -7,30 +7,32 @@ Task description
       │
       ▼
   ┌─────────┐
-  │ /clarify │  Claude Code domain analysis
+  │ /clarify │  Domain analysis + Verification Scope triage
   └─────────┘
-      │  SPEC.md
+      │  docs/PRD.md  (requirements + Section 9: Verification Scope)
       ▼
   ┌─────────┐
-  │  /prove  │  Dafny formal verification
+  │  /prove  │  Dafny formal verification (Prove-tier components only)
   └─────────┘
-      │  proof/*.dfy  PROOF.md
+      │  logic/*.dfy  docs/PROOF.md
       ▼
   ┌─────────┐
   │  /code   │  Implementation (auto-merge: OFF)
   └─────────┘
-      │  source files + tests  (diff for review)
+      │  src/  docs/TRACE.md  (diff for review)
       ▼
    Human review & merge
 ```
+
+---
 
 ## Phase 1: Clarify
 
 ### What Claude does
 
-Claude Code performs a domain analysis of the problem. This is not just
-requirement gathering — it's a structured effort to identify properties that
-can later be expressed in first-order logic for the Prove phase.
+Claude Code performs a domain analysis of the problem. This is not just requirement
+gathering — it's a structured effort to identify properties that can later be expressed
+in first-order logic for the Prove phase.
 
 The analysis covers:
 - **Entities**: types, their fields, valid value ranges
@@ -39,18 +41,27 @@ The analysis covers:
 - **Pre/postconditions**: contracts on each operation
 - **Edge cases**: boundary conditions and failure modes
 
-### Output: SPEC.md
+At the end of the analysis, Claude proposes a **Verification Scope** (Section 9 of the PRD):
+a triage table assigning each identified component a tier.
 
-`SPEC.md` is the structured output of the Clarify phase. It is the contract
-between the Clarify and Prove phases. If a property is not in `SPEC.md`,
-it will not be proved.
+| Tier | When to apply |
+|---|---|
+| **Prove** | Financial logic, access control, data integrity, state machines with complex transitions, security boundaries, safety-critical behaviour |
+| **Direct** | UI components, API glue, configuration loading, logging, scripts, prototypes |
+
+### Output: docs/PRD.md
+
+`docs/PRD.md` is the structured output of the Clarify phase. It is the contract between
+Clarify and all subsequent phases. If a property is not in `docs/PRD.md`, it will not be
+proved or generated. Section 9 (Verification Scope) determines which path each component
+takes through the rest of the pipeline.
 
 ### When to iterate
 
 Re-run `/clarify` if:
 - The spec has gaps (missing edge cases, underspecified error behaviour)
-- Dafny cannot express something in `SPEC.md` (usually means the spec is
-  too informal; go back and make it more precise)
+- Dafny cannot express something in the PRD (go back and make it more precise)
+- The human wants to change a triage decision in Section 9
 
 ---
 
@@ -58,32 +69,36 @@ Re-run `/clarify` if:
 
 ### What Claude does
 
-Claude translates `SPEC.md` into Dafny, runs the verifier, and iterates
-until all goals are discharged.
+Claude reads Section 9 of `docs/PRD.md` and collects every component marked **Prove**.
+It translates each one into Dafny, runs the verifier, and iterates until all goals
+are discharged.
 
-The Dafny files live in `proof/`:
+**Direct-tier components skip this phase entirely** — they proceed straight to `/code`.
+
+If no components are marked Prove, this phase is skipped.
+
+The Dafny files live in `logic/`:
 
 ```
-proof/
-├── types.dfy        # Datatypes and type aliases
-├── invariants.dfy   # Predicate definitions
-├── operations.dfy   # Methods with requires/ensures
-└── lemmas.dfy       # Supporting lemmas (added as needed)
+logic/
+├── <component-a>.dfy   # Prove-tier component A
+├── <component-b>.dfy   # Prove-tier component B
+└── ...
 ```
 
 ### Running the verifier manually
 
 ```bash
-dafny verify proof/*.dfy
+dafny verify logic/*.dfy
 ```
 
-A clean run shows no errors. Any remaining `assume` statements will be
-documented in `PROOF.md` as unverified assumptions.
+A clean run shows no errors. Any remaining `assume` statements will be documented
+in `docs/PROOF.md` as unverified assumptions.
 
-### Output: PROOF.md
+### Output: docs/PROOF.md
 
-`PROOF.md` records:
-- Which properties were formally proved
+`docs/PROOF.md` records:
+- Which Prove-tier components were formally verified
 - The exact `dafny verify` command and Dafny version
 - Unverified assumptions and why they couldn't be proved
 - Known limitations (e.g. integer overflow not modelled, I/O excluded)
@@ -91,8 +106,9 @@ documented in `PROOF.md` as unverified assumptions.
 ### When to iterate
 
 Re-run `/prove` if:
-- `SPEC.md` was updated after an initial proof
+- `docs/PRD.md` was updated after an initial proof
 - A new requirement was discovered during the Code phase
+- A triage decision changed a Direct component to Prove
 
 ---
 
@@ -100,45 +116,54 @@ Re-run `/prove` if:
 
 ### What Claude does
 
-Claude reads `PROOF.md` and `proof/*.dfy`, selects the target language,
-and generates an implementation where each function traces back to a
-verified Dafny method.
+Claude reads `docs/PRD.md` Section 9 and generates production code using two paths:
+
+**Prove-tier components:**
+Claude reads `logic/<component>.dfy`, confirms it passes `dafny verify`, and transpiles
+it isomorphically into the target language. No new business logic is introduced. Each
+function traces back to a verified Dafny method.
+
+**Direct-tier components:**
+Claude reads the relevant PRD sections (operations, failure modes, edge cases) and
+generates code directly. Each function traces back to a PRD requirement. Every failure
+mode is an explicit return type, not an exception or a panic.
 
 ### Auto-merge is OFF
 
-Claude will **never** commit or merge changes from the Code phase without
-explicit human approval. The output is always a diff presented for review.
+Claude will **never** commit or merge changes from the Code phase without explicit human
+approval. The output is always a diff presented for review.
 
-This is a deliberate safety control: the proof covers the spec, but
-the implementation may still have bugs that require human eyes.
+This is a deliberate safety control: the proof covers the spec, but the implementation
+may still have bugs that require human eyes.
 
 ### Traceability
 
-Each generated function includes a comment linking it to its Dafny source:
+`docs/TRACE.md` maps every `src/` function to both its proof source and its PRD requirement:
 
-```python
-def transfer(account: Account, amount: int) -> Account:
-    # Implements: proof/operations.dfy::Transfer
-    # Requires: amount > 0 and account.balance >= amount
-    # Ensures: result.balance == account.balance - amount
-    ...
 ```
+| src/ function           | Proof source                      | PRD requirement        |
+|-------------------------|-----------------------------------|------------------------|
+| payment.transfer()      | logic/payment.dfy::Transfer       | PRD §4.1               |
+| dashboard.render()      | PRD direct                        | PRD §4.3               |
+| auth.checkPermission()  | logic/auth.dfy::CheckPerm         | PRD §4.2               |
+```
+
+Functions from Prove-tier components reference their Dafny source. Functions from
+Direct-tier components reference the PRD section directly.
 
 ### What is not generated
 
-Ghost code from Dafny (variables and functions annotated `ghost`) exists
-only for specification purposes and is not translated to the implementation.
-Where a ghost variable captures an important semantic concept, a comment
-is left in the implementation noting what it represents.
+Ghost code from Dafny (variables and functions annotated `ghost`) exists only for
+specification purposes and is not translated. Where a ghost variable captures an
+important semantic concept, a comment is left in the implementation.
 
 ---
 
 ## Skipping Phases
 
-You can run phases independently if you already have inputs:
+- If no components are marked Prove in Section 9, the `/prove` phase is skipped entirely.
+  Run `/clarify` then go directly to `/code`.
+- If you have an existing approved PRD and verified Dafny specs, start at `/code`.
 
-- If you have an existing spec, start at `/prove` and point Claude at it.
-- If you have an existing proof, start at `/code`.
-
-Do not skip the Prove phase when working on safety-critical or
-correctness-sensitive code — that is the whole point of this workflow.
+Do not skip `/clarify`. The PRD and Verification Scope are required inputs for both
+`/prove` and `/code`.

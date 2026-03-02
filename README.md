@@ -161,18 +161,15 @@ If a bug is found, the chain tells you exactly where it entered.
 
 ## When to Use This
 
-**Use it for** the 20% of your codebase where bugs are catastrophic:
-- Payment and financial logic
-- Permission and access control
-- Data integrity guarantees
-- Safety-critical or embedded systems
-- ML pipeline correctness constraints
+**Use it for your entire application.** The methodology handles scope for you.
 
-**Skip it for** the other 80%:
-- UI components
-- Scripts and automation
-- API glue code
-- Prototypes
+During `/clarify`, the agent analyses every component and proposes a **Verification Scope**:
+which components need formal proof (payment logic, permissions, data integrity) and which
+can go directly to code (UI, glue, scripts). You review and approve the triage as part of
+the PRD sign-off — one step, not two.
+
+The result: full PRD coverage across the codebase, with Dafny verification targeted at
+the components where a bug would be catastrophic, and direct code generation everywhere else.
 
 ---
 

@@ -88,9 +88,31 @@ _Explicit list of what this module does NOT do._
 
 ---
 
+## 9. Verification Scope
+
+_The agent proposes a verification tier for each component. Review and adjust before
+signing off — this triage determines which components go through Dafny verification
+vs. direct code generation from the PRD._
+
+| Component | Tier | Rationale |
+|---|---|---|
+| e.g. PaymentProcessor | Prove | Handles money; correctness failure = financial loss |
+| e.g. UserDashboard | Direct | UI rendering; no state invariants to prove |
+| e.g. AuthMiddleware | Prove | Security boundary; must be exhaustive |
+| e.g. EmailNotifier | Direct | Side-effect only; no correctness invariants |
+
+**Triage criteria:**
+- **Prove**: financial logic, access control, data integrity, state machines with complex
+  transitions, external-facing security boundaries, safety-critical behaviour.
+- **Direct**: UI components, API glue, configuration loading, logging, scripts, prototypes.
+
+---
+
 ## Human Sign-off
 
-> Review the sections above. When satisfied, reply "approved" to proceed to `/prove`.
+> Review all sections above, including the Verification Scope in Section 9.
+> When satisfied, reply "approved" to proceed to `/prove` (or directly to `/code`
+> if no components are marked Prove).
 
 **Approved by:** _______________
 **Date:** _______________
