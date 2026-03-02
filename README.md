@@ -1,4 +1,4 @@
-# clarify-prove-code
+# Vulcan
 
 A methodology and Claude Code orchestration kit for building high-assurance software in the agent era.
 
@@ -16,7 +16,7 @@ This gap — the Ambiguity Gap — is where bugs, security flaws, and hallucinat
 
 ## The Solution
 
-**clarify-prove-code** inserts a mathematically verified layer between your English intent and the compiled output:
+**Vulcan** inserts a mathematically verified layer between your English intent and the compiled output:
 
 1. **/define** — The agent performs domain analysis, interrogates your idea until it is fully unambiguous, and captures the target language. Output: a human-approved PRD.
 2. **/prove** — The agent translates the PRD into [Dafny](https://github.com/dafny-lang/dafny) and runs the formal verifier. Output: a machine-verified spec.
@@ -65,10 +65,10 @@ Install once; `/define`, `/prove`, and `/code` become available in every Claude 
 
 ```sh
 # 1. Register the GitHub repo as a plugin source
-claude plugin marketplace add https://github.com/josemodena/clarify-prove-code
+claude plugin marketplace add https://github.com/josemodena/vulcan
 
 # 2. Install the plugin
-claude plugin install clarify-prove-code
+claude plugin install vulcan
 
 # 3. Install Dafny
 bash scripts/install-dafny.sh
@@ -80,7 +80,7 @@ claude
 To remove the plugin later:
 
 ```sh
-claude plugin uninstall clarify-prove-code
+claude plugin uninstall vulcan
 ```
 
 ### Option B — Session-only (no permanent install)
@@ -88,9 +88,9 @@ claude plugin uninstall clarify-prove-code
 Load the plugin for a single Claude Code session without installing it globally:
 
 ```sh
-git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
-bash ~/clarify-prove-code/scripts/install-dafny.sh
-claude --plugin-dir ~/clarify-prove-code
+git clone https://github.com/josemodena/vulcan ~/vulcan
+bash ~/vulcan/scripts/install-dafny.sh
+claude --plugin-dir ~/vulcan
 ```
 
 ### Option C — Project-level installation (via install script)
@@ -98,9 +98,9 @@ claude --plugin-dir ~/clarify-prove-code
 Copies commands and `CLAUDE.md` into a specific project directory so the skills work in that project only:
 
 ```sh
-git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
+git clone https://github.com/josemodena/vulcan ~/vulcan
 cd my-project
-bash ~/clarify-prove-code/scripts/install.sh
+bash ~/vulcan/scripts/install.sh
 ```
 
 The installer:
@@ -152,7 +152,7 @@ The agent will interrogate your idea, capture the target language, write a PRD, 
 ## Repository Structure
 
 ```
-clarify-prove-code/
+vulcan/
 ├── package.json                 ← Plugin manifest (name, version)
 ├── CLAUDE.md                    ← Master rules for Claude Code
 ├── skills/                      ← Plugin skills (global installation)

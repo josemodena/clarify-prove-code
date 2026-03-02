@@ -1,5 +1,5 @@
 {
-  "name": "clarify-prove-code",
+  "name": "vulcan",
   "version": "1.0.0",
   "description": "Three-phase formal verification methodology for Claude Code: define → prove → code",
   "private": true,

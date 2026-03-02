@@ -8,7 +8,7 @@
 
 ## Installation Options
 
-There are three ways to install clarify-prove-code depending on how broadly you want the
+There are three ways to install vulcan depending on how broadly you want the
 skills available.
 
 ### Option A — Global plugin (recommended)
@@ -18,10 +18,10 @@ every session without any per-project setup.
 
 ```bash
 # 1. Register the GitHub repo as a plugin source
-claude plugin marketplace add https://github.com/josemodena/clarify-prove-code
+claude plugin marketplace add https://github.com/josemodena/vulcan
 
 # 2. Install the plugin
-claude plugin install clarify-prove-code
+claude plugin install vulcan
 
 # 3. Install Dafny
 bash scripts/install-dafny.sh
@@ -36,7 +36,7 @@ claude plugin list
 To remove it later:
 
 ```bash
-claude plugin uninstall clarify-prove-code
+claude plugin uninstall vulcan
 ```
 
 ### Option B — Session-only plugin
@@ -45,13 +45,13 @@ Load the plugin for a single Claude Code session. Nothing is permanently install
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
+git clone https://github.com/josemodena/vulcan ~/vulcan
 
 # 2. Install Dafny
-bash ~/clarify-prove-code/scripts/install-dafny.sh
+bash ~/vulcan/scripts/install-dafny.sh
 
 # 3. Start Claude Code with the plugin loaded
-claude --plugin-dir ~/clarify-prove-code
+claude --plugin-dir ~/vulcan
 ```
 
 ### Option C — Project-level installation
@@ -61,13 +61,13 @@ in that project directory.
 
 ```bash
 # 1. Clone the plugin
-git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
+git clone https://github.com/josemodena/vulcan ~/vulcan
 
 # 2. Go to the project where you want to use it
 cd my-project
 
 # 3. Install
-bash ~/clarify-prove-code/scripts/install.sh
+bash ~/vulcan/scripts/install.sh
 ```
 
 The installer handles Dafny and .NET automatically.
@@ -107,13 +107,13 @@ dafny --version
 Then install the plugin without re-running the Dafny installer:
 
 ```bash
-bash ~/clarify-prove-code/scripts/install.sh --skip-dafny
+bash ~/vulcan/scripts/install.sh --skip-dafny
 ```
 
 ## Verify Everything Is Ready
 
 ```bash
-bash ~/clarify-prove-code/scripts/verify-deps.sh
+bash ~/vulcan/scripts/verify-deps.sh
 ```
 
 Expected output:

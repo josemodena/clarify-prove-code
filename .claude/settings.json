@@ -1,5 +1,5 @@
 {
-  "clarify_prove_code": {
+  "vulcan": {
     "auto_merge": false,
     "language_tiers": {
       "tier1": ["python", "typescript", "javascript", "rust", "go", "java", "c", "cpp"],
