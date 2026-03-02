@@ -6,7 +6,58 @@
 - A POSIX shell (bash or zsh) for running the install scripts
 - Internet access for the initial Dafny download
 
-## Quick Install
+## Installation Options
+
+There are three ways to install clarify-prove-code depending on how broadly you want the
+skills available.
+
+### Option A — Global plugin (recommended)
+
+Installs the skills into Claude Code globally so `/clarify`, `/prove`, and `/code` work in
+every session without any per-project setup.
+
+```bash
+# 1. Register the GitHub repo as a plugin source
+claude plugin marketplace add https://github.com/josemodena/clarify-prove-code
+
+# 2. Install the plugin
+claude plugin install clarify-prove-code
+
+# 3. Install Dafny
+bash scripts/install-dafny.sh
+```
+
+To verify the plugin is registered:
+
+```bash
+claude plugin list
+```
+
+To remove it later:
+
+```bash
+claude plugin uninstall clarify-prove-code
+```
+
+### Option B — Session-only plugin
+
+Load the plugin for a single Claude Code session. Nothing is permanently installed.
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/josemodena/clarify-prove-code ~/clarify-prove-code
+
+# 2. Install Dafny
+bash ~/clarify-prove-code/scripts/install-dafny.sh
+
+# 3. Start Claude Code with the plugin loaded
+claude --plugin-dir ~/clarify-prove-code
+```
+
+### Option C — Project-level installation
+
+Copies the commands and `CLAUDE.md` into a specific project. The skills are available only
+in that project directory.
 
 ```bash
 # 1. Clone the plugin
@@ -19,7 +70,7 @@ cd my-project
 bash ~/clarify-prove-code/scripts/install.sh
 ```
 
-That's it. The installer handles Dafny and .NET automatically.
+The installer handles Dafny and .NET automatically.
 
 ## Manual Dafny Installation
 
