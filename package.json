@@ -1,7 +1,7 @@
 {
   "name": "clarify-prove-code",
   "version": "1.0.0",
-  "description": "Three-phase formal verification methodology for Claude Code: clarify → prove → code",
+  "description": "Three-phase formal verification methodology for Claude Code: define → prove → code",
   "private": true,
   "engines": {
     "node": ">=18.0.0"

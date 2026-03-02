@@ -1,8 +1,9 @@
 # PRD: [Module Name]
 
 **Status:** Draft / Approved
-**Phase:** clarify
+**Phase:** define
 **Date:** YYYY-MM-DD
+**Target Language:** [e.g. Python — must be a Dafny compile target if any Prove-tier components exist: py, go, java, js, cs, rs]
 
 ---
 
@@ -110,9 +111,10 @@ vs. direct code generation from the PRD._
 
 ## Human Sign-off
 
-> Review all sections above, including the Verification Scope in Section 9.
-> When satisfied, reply "approved" to proceed to `/prove` (or directly to `/code`
-> if no components are marked Prove).
+> Review all sections above, including the Target Language and the Verification Scope
+> in Section 9. Confirm that the Target Language is a valid Dafny compile target if
+> any components are marked Prove. When satisfied, reply "approved" to proceed to
+> `/prove` (or directly to `/code` if no components are marked Prove).
 
 **Approved by:** _______________
 **Date:** _______________

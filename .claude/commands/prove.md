@@ -4,7 +4,7 @@ Translate each Prove-tier component from the approved PRD into Dafny and formall
 
 ## Prerequisites
 
-- `docs/PRD.md` must exist and be marked as approved by the human (run `/clarify` first).
+- `docs/PRD.md` must exist and be marked as approved by the human (run `/define` first).
 - Dafny must be installed. If not present, run:
   ```
   bash scripts/install-dafny.sh
@@ -73,7 +73,7 @@ Translate each Prove-tier component from the approved PRD into Dafny and formall
 
 ## Notes
 - Do not write implementation code during this phase.
-- Do not modify `docs/PRD.md` — if a contradiction is found, report it and return to `/clarify`.
+- Do not modify `docs/PRD.md` — if a contradiction is found, report it and return to `/define`.
 - The Dafny spec is the authoritative source for all Prove-tier components.
 - Ghost code in Dafny does not need to be translated to the implementation language.
 - If the spec is too large to verify in one pass, split it into independent modules.
