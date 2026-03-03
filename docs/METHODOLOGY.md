@@ -1,4 +1,4 @@
-# The clarify-prove-code Methodology
+# The Vulcan Methodology
 
 ## The Problem
 
@@ -30,7 +30,7 @@ Under these criteria, explicit, strongly typed languages outperform permissive o
 
 ## The Three-Phase Pipeline
 
-**clarify-prove-code** bridges the Ambiguity Gap with a mandatory three-phase pipeline.
+**Vulcan** bridges the Ambiguity Gap with a mandatory three-phase pipeline.
 
 ### Phase 1: Define
 

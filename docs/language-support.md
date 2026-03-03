@@ -1,6 +1,6 @@
 # Language Support
 
-Language support in clarify-prove-code works differently depending on the component tier.
+Language support in Vulcan works differently depending on the component tier.
 
 ---
 

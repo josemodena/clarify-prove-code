@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# verify-deps.sh — Check that all tools required by clarify-prove-code are present
+# verify-deps.sh — Check that all tools required by Vulcan are present
 #
 # Usage:
 #   bash scripts/verify-deps.sh

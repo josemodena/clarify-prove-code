@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# install.sh — Install the clarify-prove-code plugin into a target project
+# install.sh — Install the Vulcan plugin into a target project
 #
 # Usage (from project root where you want to install):
-#   bash /path/to/clarify-prove-code/scripts/install.sh
+#   bash /path/to/Vulcan/scripts/install.sh
 #
 # What this script does:
 #   1. Copies .claude/ commands and settings into the target project
@@ -46,7 +46,7 @@ done
 
 [[ -d "$TARGET_DIR" ]] || error "Target directory does not exist: $TARGET_DIR"
 
-step "Installing clarify-prove-code plugin into: $TARGET_DIR"
+step "Installing Vulcan plugin into: $TARGET_DIR"
 echo
 
 # ── 1. Copy .claude/ directory ───────────────────────────────────────────────
@@ -57,7 +57,7 @@ mkdir -p "$TARGET_CLAUDE/commands"
 
 # Merge settings if target already has one
 if [[ -f "$TARGET_CLAUDE/settings.json" ]]; then
-    warn "Existing .claude/settings.json found. Merging clarify_prove_code key..."
+    warn "Existing .claude/settings.json found. Merging vulcan key..."
     if command -v python3 &>/dev/null; then
         python3 - <<'EOF'
 import json, sys
@@ -88,7 +88,7 @@ else
 fi
 
 # Copy command files (overwrite)
-for cmd in clarify prove code; do
+for cmd in define prove code; do
     cp "$PLUGIN_ROOT/.claude/commands/${cmd}.md" "$TARGET_CLAUDE/commands/${cmd}.md"
     info "  Installed command: /${cmd}"
 done
@@ -100,7 +100,7 @@ if [[ -f "$TARGET_DIR/CLAUDE.md" ]]; then
     {
         echo
         echo "---"
-        echo "<!-- clarify-prove-code plugin -->"
+        echo "<!-- Vulcan plugin -->"
         cat "$PLUGIN_ROOT/CLAUDE.md"
     } >> "$TARGET_DIR/CLAUDE.md"
 else
@@ -120,5 +120,5 @@ step "Verifying dependencies..."
 bash "$PLUGIN_ROOT/scripts/verify-deps.sh"
 
 echo
-info "Plugin installed. Available commands: /clarify, /prove, /code"
-info "Run '/clarify' in Claude Code to start the workflow."
+info "Plugin installed. Available commands: /define, /prove, /code"
+info "Run '/define' in Claude Code to start the workflow."
