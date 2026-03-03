@@ -1,6 +1,6 @@
 # Vulcan
 
-A methodology and Claude Code orchestration kit for building high-assurance software in the agent era.
+Vulcan is a "proof before deploy" agentic methodology and Claude Code plugin for building high-assurance software.
 
 ```
 /define  →  /prove  →  /code
